@@ -1,0 +1,37 @@
+<html>
+<head>
+    <!-- Polyfill for older browsers without native support for the HTML5 EventSource API. -->
+    <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=EventSource"></script>
+</head>
+<body>
+    <div id="payload"></div>
+    <script>
+        let ctr = 0;
+        const MAX = 5;
+        const stream = new EventSource('https://localhost:5001/api/sse');
+
+        stream.addEventListener('open', function (event) {
+            // close after maximum message
+            if (ctr === MAX) stream.close();
+            console.log('Stream is open');
+        }, false);
+
+        // Handler for new messages.
+        stream.addEventListener('message', event => {
+            document.getElementById('payload').innerText += event.data + "\n";
+            ++ctr;
+        }, false);
+
+        stream.addEventListener('error', function (event) {
+            switch (event.target.readyState) {
+                case EventSource.CONNECTING:
+                    console.log('Reconnecting...');
+                    break;
+                case EventSource.CLOSED:
+                    console.log('Connection failed, will not reconnect');
+                    break;
+            }
+        }, false);
+    </script>
+</body>
+</html>
